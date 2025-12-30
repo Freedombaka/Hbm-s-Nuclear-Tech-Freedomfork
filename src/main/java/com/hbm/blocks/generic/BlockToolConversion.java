@@ -13,9 +13,9 @@ import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RecipesCommon.MetaBlock;
 import com.hbm.inventory.RecipesCommon.OreDictStack;
-import com.hbm.util.I18nUtil;
 import com.hbm.util.InventoryUtil;
 import com.hbm.util.Tuple.Pair;
+import com.hbm.util.i18n.I18nUtil;
 
 import api.hbm.block.IToolable;
 import cpw.mods.fml.relauncher.Side;
@@ -152,7 +152,7 @@ public class BlockToolConversion extends BlockMulti implements IToolable, ILookO
 	
 	public static void registerRecipes() {
 		conversions.put(new Pair(ToolType.BOLT, new MetaBlock(ModBlocks.watz_end, 0)), new Pair(new AStack[] {new OreDictStack(OreDictManager.DURA.bolt(), 4)}, new MetaBlock(ModBlocks.watz_end, 1)));
-		conversions.put(new Pair(ToolType.TORCH, new MetaBlock(ModBlocks.fusion_conductor, 0)), new Pair(new AStack[] {new OreDictStack(OreDictManager.STEEL.plateCast())}, new MetaBlock(ModBlocks.fusion_conductor, 1)));
+		conversions.put(new Pair(ToolType.TORCH, new MetaBlock(ModBlocks.fusion_component, 0)), new Pair(new AStack[] {new OreDictStack(OreDictManager.STEEL.plateCast())}, new MetaBlock(ModBlocks.fusion_component, 1)));
 		conversions.put(new Pair(ToolType.TORCH, new MetaBlock(ModBlocks.icf_component, 1)), new Pair(new AStack[] {new OreDictStack(OreDictManager.ANY_BISMOIDBRONZE.plateCast())}, new MetaBlock(ModBlocks.icf_component, 2)));
 		conversions.put(new Pair(ToolType.BOLT, new MetaBlock(ModBlocks.icf_component, 3)), new Pair(new AStack[] {new OreDictStack(OreDictManager.STEEL.plateCast()), new OreDictStack(OreDictManager.DURA.bolt(), 4)}, new MetaBlock(ModBlocks.icf_component, 4)));
 	}

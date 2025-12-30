@@ -1,15 +1,12 @@
 package com.hbm.inventory.recipes.loader;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -19,6 +16,7 @@ import com.google.gson.stream.JsonWriter;
 import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
+import com.hbm.inventory.RecipesCommon.NBTStack;
 import com.hbm.inventory.RecipesCommon.OreDictStack;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
@@ -32,20 +30,25 @@ import com.hbm.util.Tuple.Pair;
 import api.hbm.recipe.IRecipeRegisterListener;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
 
 //the anti-spaghetti. this class provides so much functionality and saves so much time, i just love you, SerializableRecipe <3
 public abstract class SerializableRecipe {
-	
+
 	public static final Gson gson = new Gson();
 	public static List<SerializableRecipe> recipeHandlers = new ArrayList();
 	public static List<IRecipeRegisterListener> additionalListeners = new ArrayList();
-	
+
+	public static Map<String, InputStream> recipeSyncHandlers = new HashMap();
+
 	public boolean modified = false;
-	
+
 	/*
 	 * INIT
 	 */
-	
+
 	public static void registerAllHandlers() {
 		recipeHandlers.add(new PressRecipes());
 		recipeHandlers.add(new BlastFurnaceRecipes());
@@ -56,6 +59,8 @@ public abstract class SerializableRecipe {
 		recipeHandlers.add(new CrucibleRecipes());
 		recipeHandlers.add(new CentrifugeRecipes());
 		recipeHandlers.add(new CrystallizerRecipes());
+		recipeHandlers.add(new RefineryRecipes());
+		recipeHandlers.add(new VacuumRefineryRecipes());
 		recipeHandlers.add(new FractionRecipes());
 		recipeHandlers.add(new CrackingRecipes());
 		recipeHandlers.add(new ReformingRecipes());
@@ -70,6 +75,7 @@ public abstract class SerializableRecipe {
 		recipeHandlers.add(new FuelPoolRecipes());
 		recipeHandlers.add(new MixerRecipes());
 		recipeHandlers.add(new OutgasserRecipes());
+		recipeHandlers.add(new FluidBreederRecipes());
 		recipeHandlers.add(new CompressorRecipes());
 		recipeHandlers.add(new ElectrolyserFluidRecipes());
 		recipeHandlers.add(new ElectrolyserMetalRecipes());
@@ -82,67 +88,100 @@ public abstract class SerializableRecipe {
 		//AFTER Assembler
 		recipeHandlers.add(new AnvilRecipes());
 		recipeHandlers.add(new PedestalRecipes());
+		recipeHandlers.add(new AnnihilatorRecipes());
 		
+		//GENERIC
+		recipeHandlers.add(AssemblyMachineRecipes.INSTANCE);
+		recipeHandlers.add(ChemicalPlantRecipes.INSTANCE);
+		recipeHandlers.add(PUREXRecipes.INSTANCE);
+		recipeHandlers.add(FusionRecipes.INSTANCE);
+		recipeHandlers.add(PrecAssRecipes.INSTANCE);
+
 		recipeHandlers.add(new MatDistribution());
 		recipeHandlers.add(new CustomMachineRecipes());
 		//AFTER MatDistribution
 		recipeHandlers.add(new ArcFurnaceRecipes());
 	}
-	
+
 	public static void initialize() {
 		File recDir = new File(MainRegistry.configDir.getAbsolutePath() + File.separatorChar + "hbmRecipes");
-		
+
 		if(!recDir.exists()) {
 			if(!recDir.mkdir()) {
 				throw new IllegalStateException("Unable to make recipe directory " + recDir.getAbsolutePath());
 			}
 		}
-		
+
 		File info = new File(recDir.getAbsolutePath() + File.separatorChar + "REMOVE UNDERSCORE TO ENABLE RECIPE LOADING - RECIPES WILL RESET TO DEFAULT OTHERWISE");
 		try { info.createNewFile(); } catch(IOException e) { }
-		
+
 		MainRegistry.logger.info("Starting recipe init!");
+
+		GenericRecipes.clearPools();
 		
 		for(SerializableRecipe recipe : recipeHandlers) {
-			
+
 			recipe.deleteRecipes();
-			
+
 			File recFile = new File(recDir.getAbsolutePath() + File.separatorChar + recipe.getFileName());
-			if(recFile.exists() && recFile.isFile()) {
+			if(recipeSyncHandlers.containsKey(recipe.getFileName())) {
+				MainRegistry.logger.info("Reading synced recipe file " + recipe.getFileName());
+				InputStream stream = recipeSyncHandlers.get(recipe.getFileName());
+
+				try {
+					stream.reset();
+					Reader reader = new InputStreamReader(stream);
+					recipe.readRecipeStream(reader);
+					recipe.modified = true;
+				} catch(Throwable ex) {
+					MainRegistry.logger.error("Failed to reset synced recipe stream", ex);
+				}
+			} else if(recFile.exists() && recFile.isFile()) {
 				MainRegistry.logger.info("Reading recipe file " + recFile.getName());
 				recipe.readRecipeFile(recFile);
 				recipe.modified = true;
 			} else {
 				MainRegistry.logger.info("No recipe file found, registering defaults for " + recipe.getFileName());
 				recipe.registerDefaults();
-				
+
 				for(IRecipeRegisterListener listener : additionalListeners) {
 					listener.onRecipeLoad(recipe.getClass().getSimpleName());
 				}
-				
+
 				File recTemplate = new File(recDir.getAbsolutePath() + File.separatorChar + "_" + recipe.getFileName());
 				MainRegistry.logger.info("Writing template file " + recTemplate.getName());
 				recipe.writeTemplateFile(recTemplate);
 				recipe.modified = false;
 			}
-			
+
 			recipe.registerPost();
 		}
-		
+
 		MainRegistry.logger.info("Finished recipe init!");
+	}
+
+	public static void receiveRecipes(String filename, byte[] data) {
+		recipeSyncHandlers.put(filename, new ByteArrayInputStream(data));
+	}
+
+	public static void clearReceivedRecipes() {
+		boolean hasCleared = !recipeSyncHandlers.isEmpty();
+		recipeSyncHandlers.clear();
+
+		if(hasCleared) initialize();
 	}
 
 	/*
 	 * ABSTRACT
 	 */
-	
+
 	/** The machine's (or process') name used for the recipe file */
 	public abstract String getFileName();
 	/** Return the list object holding all the recipes, usually an ArrayList or HashMap */
 	public abstract Object getRecipeObject();
 	/** Will use the supplied JsonElement (usually casts to JsonArray) from the over arching recipe array and adds the recipe to the recipe list object */
 	public abstract void readRecipe(JsonElement recipe);
-	/** Is given a single recipe from the recipe list object (a wrapper, Tuple, array, HashMap Entry, etc) and writes it to the current ongoing GSON stream 
+	/** Is given a single recipe from the recipe list object (a wrapper, Tuple, array, HashMap Entry, etc) and writes it to the current ongoing GSON stream
 	 * @throws IOException */
 	public abstract void writeRecipe(Object recipe, JsonWriter writer) throws IOException;
 	/** Registers the default recipes */
@@ -155,45 +194,45 @@ public abstract class SerializableRecipe {
 	public String getComment() {
 		return null;
 	}
-	
+
 	/*
 	 * JSON R/W WRAPPERS
 	 */
-	
+
 	public void writeTemplateFile(File template) {
-		
+
 		try {
 			/* Get the recipe list object */
 			Object recipeObject = this.getRecipeObject();
 			List recipeList = new ArrayList();
-			
+
 			/* Try to pry all recipes from our list */
 			if(recipeObject instanceof Collection) {
 				recipeList.addAll((Collection) recipeObject);
-				
+
 			} else if(recipeObject instanceof HashMap) {
 				recipeList.addAll(((HashMap) recipeObject).entrySet());
 			}
-			
+
 			if(recipeList.isEmpty())
 				throw new IllegalStateException("Error while writing recipes for " + this.getClass().getSimpleName() + ": Recipe list is either empty or in an unsupported format!");
-			
+
 			JsonWriter writer = new JsonWriter(new FileWriter(template));
 			writer.setIndent("  ");					//pretty formatting
 			writer.beginObject();					//initial '{'
-			
+
 			if(this.getComment() != null) {
 				writer.name("comment").value(this.getComment());
 			}
-			
+
 			writer.name("recipes").beginArray();	//all recipes are stored in an array called "recipes"
-			
+
 			for(Object recipe : recipeList) {
 				writer.beginObject();				//begin object for a single recipe
 				this.writeRecipe(recipe, writer);	//serialize here
 				writer.endObject();					//end recipe object
 			}
-			
+
 			writer.endArray();						//end recipe array
 			writer.endObject();						//final '}'
 			writer.close();
@@ -201,26 +240,35 @@ public abstract class SerializableRecipe {
 			ex.printStackTrace();
 		}
 	}
-	
+
 	public void readRecipeFile(File file) {
-		
 		try {
-			JsonObject json = gson.fromJson(new FileReader(file), JsonObject.class);
-			JsonArray recipes = json.get("recipes").getAsJsonArray();
-			for(JsonElement recipe : recipes) {
-				this.readRecipe(recipe);
-			}
+			readRecipeStream(new FileReader(file));
 		} catch(FileNotFoundException ex) { }
 	}
-	
+
+	public void readRecipeStream(Reader reader) {
+		JsonObject json = gson.fromJson(reader, JsonObject.class);
+		JsonArray recipes = json.get("recipes").getAsJsonArray();
+		for(JsonElement recipe : recipes) {
+			if(recipe != null) this.readRecipe(recipe);
+		}
+	}
+
 	/*
 	 * JSON IO UTIL
 	 */
-	
+
 	public static AStack readAStack(JsonArray array) {
 		try {
 			String type = array.get(0).getAsString();
 			int stacksize = array.size() > 2 ? array.get(2).getAsInt() : 1;
+			if("nbt".equals(type)) {
+				Item item = (Item) Item.itemRegistry.getObject(array.get(1).getAsString());
+				int meta = array.size() > 3 ? array.get(3).getAsInt() : 0;
+				NBTBase nbt = JsonToNBT.func_150315_a(array.get(array.size() - 1).getAsString());
+				return new NBTStack(item, stacksize, meta).withNBT(nbt instanceof NBTTagCompound ? (NBTTagCompound) nbt : null);
+			}
 			if("item".equals(type)) {
 				Item item = (Item) Item.itemRegistry.getObject(array.get(1).getAsString());
 				int meta = array.size() > 3 ? array.get(3).getAsInt() : 0;
@@ -234,7 +282,7 @@ public abstract class SerializableRecipe {
 		MainRegistry.logger.error("Error reading stack array " + array.toString());
 		return new ComparableStack(ModItems.nothing);
 	}
-	
+
 	public static AStack[] readAStackArray(JsonArray array) {
 		try {
 			AStack[] items = new AStack[array.size()];
@@ -244,27 +292,33 @@ public abstract class SerializableRecipe {
 		MainRegistry.logger.error("Error reading stack array " + array.toString());
 		return new AStack[0];
 	}
-	
+
 	public static void writeAStack(AStack astack, JsonWriter writer) throws IOException {
 		writer.beginArray();
 		writer.setIndent("");
-		if(astack instanceof ComparableStack) {
+		if(astack instanceof NBTStack) {
+			NBTStack comp = (NBTStack) astack;
+			writer.value(comp.nbt != null ? "nbt" : "item");							//NBT  identifier
+			writer.value(Item.itemRegistry.getNameForObject(comp.toStack().getItem()));	//item name
+			if(comp.stacksize != 1 || comp.meta > 0) writer.value(comp.stacksize);		//stack size
+			if(comp.meta > 0) writer.value(comp.meta);									//metadata
+			if(comp.nbt != null) writer.value(comp.nbt.toString());						//NBT
+		} else if(astack instanceof ComparableStack) {
 			ComparableStack comp = (ComparableStack) astack;
 			writer.value("item");														//ITEM  identifier
 			writer.value(Item.itemRegistry.getNameForObject(comp.toStack().getItem()));	//item name
-			if(comp.stacksize != 1 || comp.meta > 0) writer.value(comp.stacksize);						//stack size
+			if(comp.stacksize != 1 || comp.meta > 0) writer.value(comp.stacksize);		//stack size
 			if(comp.meta > 0) writer.value(comp.meta);									//metadata
-		}
-		if(astack instanceof OreDictStack) {
+		} else if(astack instanceof OreDictStack) {
 			OreDictStack ore = (OreDictStack) astack;
-			writer.value("dict");			//DICT identifier
-			writer.value(ore.name);			//dict name
-			if(ore.stacksize != 1) writer.value(ore.stacksize);	//stacksize
+			writer.value("dict");														//DICT identifier
+			writer.value(ore.name);														//dict name
+			if(ore.stacksize != 1) writer.value(ore.stacksize);							//stacksize
 		}
 		writer.endArray();
 		writer.setIndent("  ");
 	}
-	
+
 	public static ItemStack readItemStack(JsonArray array) {
 		try {
 			Item item = (Item) Item.itemRegistry.getObject(array.get(0).getAsString());
@@ -275,7 +329,7 @@ public abstract class SerializableRecipe {
 		MainRegistry.logger.error("Error reading stack array " + array.toString() + " - defaulting to NOTHING item!");
 		return new ItemStack(ModItems.nothing);
 	}
-	
+
 	public static Pair<ItemStack, Float> readItemStackChance(JsonArray array) {
 		try {
 			Item item = (Item) Item.itemRegistry.getObject(array.get(0).getAsString());
@@ -287,7 +341,7 @@ public abstract class SerializableRecipe {
 		MainRegistry.logger.error("Error reading stack array " + array.toString() + " - defaulting to NOTHING item!");
 		return new Pair(new ItemStack(ModItems.nothing), 1F);
 	}
-	
+
 	public static ItemStack[] readItemStackArray(JsonArray array) {
 		try {
 			ItemStack[] items = new ItemStack[array.size()];
@@ -297,7 +351,7 @@ public abstract class SerializableRecipe {
 		MainRegistry.logger.error("Error reading stack array " + array.toString());
 		return new ItemStack[0];
 	}
-	
+
 	public static Pair<ItemStack, Float>[] readItemStackArrayChance(JsonArray array) {
 		try {
 			Pair<ItemStack, Float>[] items = new Pair[array.size()];
@@ -307,7 +361,7 @@ public abstract class SerializableRecipe {
 		MainRegistry.logger.error("Error reading stack array " + array.toString());
 		return new Pair[0];
 	}
-	
+
 	public static void writeItemStack(ItemStack stack, JsonWriter writer) throws IOException {
 		writer.beginArray();
 		writer.setIndent("");
@@ -317,7 +371,7 @@ public abstract class SerializableRecipe {
 		writer.endArray();
 		writer.setIndent("  ");
 	}
-	
+
 	public static void writeItemStackChance(Pair<ItemStack, Float> stack, JsonWriter writer) throws IOException {
 		writer.beginArray();
 		writer.setIndent("");
@@ -328,7 +382,7 @@ public abstract class SerializableRecipe {
 		writer.endArray();
 		writer.setIndent("  ");
 	}
-	
+
 	public static FluidStack readFluidStack(JsonArray array) {
 		try {
 			FluidType type = Fluids.fromName(array.get(0).getAsString());
@@ -339,7 +393,7 @@ public abstract class SerializableRecipe {
 		MainRegistry.logger.error("Error reading fluid array " + array.toString());
 		return new FluidStack(Fluids.NONE, 0);
 	}
-	
+
 	public static FluidStack[] readFluidArray(JsonArray array) {
 		try {
 			FluidStack[] fluids = new FluidStack[array.size()];
@@ -349,7 +403,7 @@ public abstract class SerializableRecipe {
 		MainRegistry.logger.error("Error reading fluid array " + array.toString());
 		return new FluidStack[0];
 	}
-	
+
 	public static void writeFluidStack(FluidStack stack, JsonWriter writer) throws IOException {
 		writer.beginArray();
 		writer.setIndent("");
@@ -359,12 +413,12 @@ public abstract class SerializableRecipe {
 		writer.endArray();
 		writer.setIndent("  ");
 	}
-	
+
 	public static boolean matchesIngredients(ItemStack[] inputs, AStack[] recipe) {
 
 		List<AStack> recipeList = new ArrayList();
 		for(AStack ingredient : recipe) recipeList.add(ingredient);
-		
+
 		for(int i = 0; i < inputs.length; i++) {
 			ItemStack inputStack = inputs[i];
 

@@ -10,7 +10,7 @@ import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.toserver.NBTControlPacket;
 import com.hbm.tileentity.network.TileEntityRadioTorchBase;
 import com.hbm.tileentity.network.TileEntityRadioTorchSender;
-import com.hbm.util.I18nUtil;
+import com.hbm.util.i18n.I18nUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -71,7 +71,7 @@ public class GUIScreenRadioTorch extends GuiScreen {
 			this.remap[i].setTextColor(0x00ff00);
 			this.remap[i].setDisabledTextColour(0x00ff00);
 			this.remap[i].setEnableBackgroundDrawing(false);
-			this.remap[i].setMaxStringLength(15);
+			this.remap[i].setMaxStringLength(32);
 			this.remap[i].setText(radio.mapping[i] == null ? "" : radio.mapping[i]);
 		}
 	}

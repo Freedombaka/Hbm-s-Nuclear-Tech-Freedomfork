@@ -6,6 +6,7 @@ import com.hbm.extprop.HbmPlayerProps;
 import com.hbm.handler.threading.PacketThreading;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.packet.toclient.AuxParticlePacketNT;
+import com.hbm.util.ArmorUtil;
 
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.relauncher.Side;
@@ -37,16 +38,19 @@ public class JetpackBreak extends JetpackFueledBase {
 
 			if(getFuel(stack) > 0 && (props.isJetpackActive() || (!player.onGround && !player.isSneaking() && props.enableBackpack))) {
 
-	    		NBTTagCompound data = new NBTTagCompound();
-	    		data.setString("type", "jetpack");
-	    		data.setInteger("player", player.getEntityId());
+				NBTTagCompound data = new NBTTagCompound();
+				data.setString("type", "jetpack");
+				data.setInteger("player", player.getEntityId());
 				PacketThreading.createAllAroundThreadedPacket(new AuxParticlePacketNT(data, player.posX, player.posY, player.posZ), new TargetPoint(world.provider.dimensionId, player.posX, player.posY, player.posZ, 100));
 			}
 		}
 
 		if(getFuel(stack) > 0) {
 
-			if(props.isJetpackActive()) {
+			boolean playerTriesToHover = player.isSneaking() && props.isJetpackActive();
+			boolean playerShouldHover = playerTriesToHover || !player.isSneaking();
+
+			if(props.isJetpackActive() && !playerTriesToHover) {
 				player.fallDistance = 0;
 
 				if(player.motionY < 0.4D)
@@ -55,7 +59,7 @@ public class JetpackBreak extends JetpackFueledBase {
 				world.playSoundEffect(player.posX, player.posY, player.posZ, "hbm:weapon.flamethrowerShoot", 0.25F, 1.5F);
 				this.useUpFuel(player, stack, 5);
 
-			} else if(!player.isSneaking() && !player.onGround && props.enableBackpack) {
+			} else if(playerShouldHover && !player.onGround && props.enableBackpack) {
 				player.fallDistance = 0;
 
 				if(player.motionY < -1)
@@ -71,16 +75,18 @@ public class JetpackBreak extends JetpackFueledBase {
 				world.playSoundEffect(player.posX, player.posY, player.posZ, "hbm:weapon.flamethrowerShoot", 0.25F, 1.5F);
 				this.useUpFuel(player, stack, 10);
 			}
+
+			ArmorUtil.resetFlightTime(player);
 		}
-    }
+	}
 
-    @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean ext) {
+	@SideOnly(Side.CLIENT)
+	public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean ext) {
 
-    	list.add("Regular jetpack that will automatically hover mid-air.");
-    	list.add("Sneaking will stop hover mode.");
-    	list.add("Hover mode will consume less fuel and increase air-mobility.");
+		list.add("Regular jetpack that will automatically hover mid-air.");
+		list.add("Sneaking will stop hover mode.");
+		list.add("Hover mode will consume less fuel and increase air-mobility.");
 
-    	super.addInformation(stack, player, list, ext);
-    }
+		super.addInformation(stack, player, list, ext);
+	}
 }

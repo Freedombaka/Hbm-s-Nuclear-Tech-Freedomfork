@@ -98,6 +98,8 @@ public abstract class MagazineSingleTypeBase implements IMagazine<BulletConfig> 
 		for(int i = 0; i < inventory.getSizeInventory(); i++) {
 			ItemStack slot = inventory.getStackInSlot(i);
 			
+			if(loadLimit <= 0) return;
+			
 			if(slot != null) {
 				
 				//mag is empty, assume next best type
@@ -110,6 +112,7 @@ public abstract class MagazineSingleTypeBase implements IMagazine<BulletConfig> 
 							int toLoad = BobMathUtil.min(wantsToLoad, slot.stackSize, loadLimit);
 							this.setAmount(stack, Math.min(toLoad * config.ammoReloadCount, this.capacity));
 							inventory.decrStackSize(i, toLoad);
+							loadLimit -= toLoad;
 							break;
 						}
 					}
@@ -124,6 +127,7 @@ public abstract class MagazineSingleTypeBase implements IMagazine<BulletConfig> 
 						int toLoad = BobMathUtil.min(wantsToLoad, slot.stackSize, loadLimit);
 						this.setAmount(stack, Math.min((toLoad * config.ammoReloadCount) + alreadyLoaded, this.capacity));
 						inventory.decrStackSize(i, toLoad);
+						loadLimit -= toLoad;
 					}
 				}
 				
@@ -146,6 +150,7 @@ public abstract class MagazineSingleTypeBase implements IMagazine<BulletConfig> 
 										int toLoad = BobMathUtil.min(wantsToLoad, infBag ? 9_999 : bagslot.stackSize, loadLimit);
 										this.setAmount(stack, Math.min(toLoad * config.ammoReloadCount, this.capacity));
 										if(!infBag) bag.decrStackSize(j, toLoad);
+										loadLimit -= toLoad;
 										break;
 									}
 								}
@@ -160,6 +165,7 @@ public abstract class MagazineSingleTypeBase implements IMagazine<BulletConfig> 
 									int toLoad = BobMathUtil.min(wantsToLoad, infBag ? 9_999 : bagslot.stackSize, loadLimit);
 									this.setAmount(stack, Math.min((toLoad * config.ammoReloadCount) + alreadyLoaded, this.capacity));
 									if(!infBag) bag.decrStackSize(j, toLoad);
+									loadLimit -= toLoad;
 								}
 							}
 						}
@@ -223,7 +229,7 @@ public abstract class MagazineSingleTypeBase implements IMagazine<BulletConfig> 
 
 	@Override public int getCapacity(ItemStack stack) { return capacity; }
 	@Override public int getAmount(ItemStack stack, IInventory inventory) { return getMagCount(stack, index); }
-	@Override public void setAmount(ItemStack stack, int amount) { setMagCount(stack, index, amount); }
+	@Override public void setAmount(ItemStack stack, int amount) { setMagCount(stack, index, Math.max(amount, 0)); }
 	
 	@Override public void setAmountBeforeReload(ItemStack stack, int amount) { ItemGunBaseNT.setValueInt(stack, KEY_MAG_PREV + index, amount); }
 	@Override public int getAmountBeforeReload(ItemStack stack) { return ItemGunBaseNT.getValueInt(stack, KEY_MAG_PREV + index); }

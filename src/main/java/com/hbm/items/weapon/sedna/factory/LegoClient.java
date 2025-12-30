@@ -72,6 +72,18 @@ public class LegoClient {
 		renderBulletStandard(Tessellator.instance, 0xD8CA00, 0xFFF19D, length, true);
 	};
 	
+	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_SM_BULLET = (bullet, interp) -> {
+		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
+		if(length <= 0) return;
+		renderBulletStandard(Tessellator.instance, 0x42A8DD, 0xFFFFFF, length, true);
+	};
+	
+	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_BLACK_BULLET = (bullet, interp) -> {
+		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
+		if(length <= 0) return;
+		renderBulletStandard(Tessellator.instance, 0x000000, 0x7F006E, length, true);
+	};
+	
 	public static BiConsumer<EntityBulletBaseMK4, Float> RENDER_TRACER_BULLET = (bullet, interp) -> {
 		double length = bullet.prevVelocity + (bullet.velocity - bullet.prevVelocity) * interp;
 		if(length <= 0) return;
@@ -362,6 +374,44 @@ public class LegoClient {
 		GL11.glTranslated(0, bullet.beamLength, 0);
 		GL11.glRotatef(-90, 0, 0, 1);
 		renderBulletStandard(Tessellator.instance, 0xE3D692, 0xffffff, bullet.beamLength, true);
+		
+		GL11.glPopMatrix();
+		RenderArcFurnace.fullbright(false);
+	};
+	
+	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_BLACK_LIGHTNING = (bullet, interp) -> {
+
+		RenderArcFurnace.fullbright(true);
+		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
+		
+		GL11.glPushMatrix();
+		GL11.glRotatef(180 - bullet.rotationYaw, 0, 1F, 0);
+		GL11.glRotatef(-bullet.rotationPitch - 90, 1F, 0, 0);
+
+		double scale = 5D;
+		GL11.glScaled(age * scale, 1, age * scale);
+		GL11.glTranslated(0, bullet.beamLength, 0);
+		GL11.glRotatef(-90, 0, 0, 1);
+		renderBulletStandard(Tessellator.instance, 0x4C3093, 0x000000, bullet.beamLength, true);
+		
+		GL11.glPopMatrix();
+		RenderArcFurnace.fullbright(false);
+	};
+	
+	public static BiConsumer<EntityBulletBeamBase, Float> RENDER_NI4NI_BOLT = (bullet, interp) -> {
+
+		RenderArcFurnace.fullbright(true);
+		double age = MathHelper.clamp_double(1D - ((double) bullet.ticksExisted - 2 + interp) / (double) bullet.getBulletConfig().expires, 0, 1);
+		
+		GL11.glPushMatrix();
+		GL11.glRotatef(180 - bullet.rotationYaw, 0, 1F, 0);
+		GL11.glRotatef(-bullet.rotationPitch - 90, 1F, 0, 0);
+
+		double scale = 5D;
+		GL11.glScaled(age * scale, 1, age * scale);
+		GL11.glTranslated(0, bullet.beamLength, 0);
+		GL11.glRotatef(-90, 0, 0, 1);
+		renderBulletStandard(Tessellator.instance, 0xAAD2E5, 0xffffff, bullet.beamLength, true);
 		
 		GL11.glPopMatrix();
 		RenderArcFurnace.fullbright(false);

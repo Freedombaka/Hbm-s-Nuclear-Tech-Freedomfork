@@ -6,7 +6,8 @@ import com.hbm.inventory.fluid.tank.FluidTank;
 import com.hbm.tileentity.TileEntityProxyCombo;
 import com.hbm.tileentity.machine.TileEntitySolarBoiler;
 import com.hbm.util.BobMathUtil;
-import com.hbm.util.I18nUtil;
+import com.hbm.util.i18n.I18nUtil;
+
 import net.minecraft.block.material.Material;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumChatFormatting;
@@ -25,12 +26,8 @@ public class MachineSolarBoiler extends BlockDummyable implements ILookOverlay {
 
 	@Override
 	public TileEntity createNewTileEntity(World world, int meta) {
-
-		if(meta >= 12)
-			return new TileEntitySolarBoiler();
-		if(meta >= extra)
-			return new TileEntityProxyCombo(false, false, true);
-
+		if(meta >= 12) return new TileEntitySolarBoiler();
+		if(meta >= extra) return new TileEntityProxyCombo(false, false, true);
 		return null;
 	}
 

@@ -10,9 +10,12 @@ import org.lwjgl.opengl.GL11;
 
 import com.hbm.extprop.HbmLivingProps;
 import com.hbm.handler.radiation.ChunkRadiationManager;
+import com.hbm.interfaces.NotableComments;
 import com.hbm.items.ModItems;
+import com.hbm.lib.RefStrings;
 import com.hbm.util.ContaminationUtil;
-import com.hbm.util.I18nUtil;
+import com.hbm.util.ShadyUtil;
+import com.hbm.util.i18n.I18nUtil;
 
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.ReflectionHelper;
@@ -24,7 +27,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -39,10 +41,12 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.model.IModelCustom;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
 //Armor with full set bonus
+@NotableComments
 public class ArmorFSB extends ItemArmor implements IArmorDisableModel {
 
 	private String texture = "";
@@ -63,6 +67,7 @@ public class ArmorFSB extends ItemArmor implements IArmorDisableModel {
 	public ArmorFSB(ArmorMaterial material, int slot, String texture) {
 		super(material, 0, slot);
 		this.texture = texture;
+		this.setTextureName(RefStrings.MODID + ":armor");
 	}
 
 	public ArmorFSB addEffect(PotionEffect effect) {
@@ -162,7 +167,7 @@ public class ArmorFSB extends ItemArmor implements IArmorDisableModel {
 		if(!effects.isEmpty()) {
 			List potionList = new ArrayList();
 			for(PotionEffect effect : effects) {
-				potionList.add(I18n.format(Potion.potionTypes[effect.getPotionID()].getName()));
+				potionList.add(I18nUtil.format(Potion.potionTypes[effect.getPotionID()].getName()));
 			}
 			
 			toAdd.add(EnumChatFormatting.AQUA + String.join(", ", potionList));
@@ -240,43 +245,54 @@ public class ArmorFSB extends ItemArmor implements IArmorDisableModel {
 	public void handleTick(TickEvent.PlayerTickEvent event) {
 
 		EntityPlayer player = event.player;
+		boolean step = true;
+		
+		if(player.getUniqueID().equals(ShadyUtil.the_NCR) || player.getUniqueID().equals(ShadyUtil.Barnaby99_x)) {
+			step = false;
+			
+			if(player.worldObj.isRemote && player.onGround) {
+				steppy(player, "hbm:step.powered");
+			}
+		}
 
 		if(ArmorFSB.hasFSBArmor(player)) {
 
 			ItemStack plate = player.inventory.armorInventory[2];
-
 			ArmorFSB chestplate = (ArmorFSB) plate.getItem();
 
 			if(!chestplate.effects.isEmpty()) {
-
 				for(PotionEffect i : chestplate.effects) {
 					player.addPotionEffect(new PotionEffect(i.getPotionID(), i.getDuration(), i.getAmplifier(), true));
 				}
 			}
 
-			if(chestplate.step != null && player.worldObj.isRemote && player.onGround) {
-
-				try {
-					Field nextStepDistance = ReflectionHelper.findField(Entity.class, "nextStepDistance", "field_70150_b");
-					Field distanceWalkedOnStepModified = ReflectionHelper.findField(Entity.class, "distanceWalkedOnStepModified", "field_82151_R");
-
-					if(player.getEntityData().getFloat("hfr_nextStepDistance") == 0) {
-						player.getEntityData().setFloat("hfr_nextStepDistance", nextStepDistance.getFloat(player));
-					}
-
-					int px = MathHelper.floor_double(player.posX);
-					int py = MathHelper.floor_double(player.posY - 0.2D - (double) player.yOffset);
-					int pz = MathHelper.floor_double(player.posZ);
-					Block block = player.worldObj.getBlock(px, py, pz);
-
-					if(block.getMaterial() != Material.air && player.getEntityData().getFloat("hfr_nextStepDistance") <= distanceWalkedOnStepModified.getFloat(player))
-						player.playSound(chestplate.step, 1.0F, 1.0F);
-
-					player.getEntityData().setFloat("hfr_nextStepDistance", nextStepDistance.getFloat(player));
-
-				} catch(Exception x) {
-				}
+			if(step == true && chestplate.step != null && player.worldObj.isRemote && player.onGround) {
+				steppy(player, chestplate.step);
 			}
+		}
+	}
+	
+	public static void steppy(EntityPlayer player, String sound) {
+
+		try {
+			Field nextStepDistance = ReflectionHelper.findField(Entity.class, "nextStepDistance", "field_70150_b");
+			Field distanceWalkedOnStepModified = ReflectionHelper.findField(Entity.class, "distanceWalkedOnStepModified", "field_82151_R");
+
+			if(player.getEntityData().getFloat("hfr_nextStepDistance") == 0) {
+				player.getEntityData().setFloat("hfr_nextStepDistance", nextStepDistance.getFloat(player));
+			}
+
+			int px = MathHelper.floor_double(player.posX);
+			int py = MathHelper.floor_double(player.posY - 0.2D - (double) player.yOffset);
+			int pz = MathHelper.floor_double(player.posZ);
+			Block block = player.worldObj.getBlock(px, py, pz);
+
+			if(block.getMaterial() != Material.air && player.getEntityData().getFloat("hfr_nextStepDistance") <= distanceWalkedOnStepModified.getFloat(player))
+				player.playSound(sound, 1.0F, 1.0F);
+
+			player.getEntityData().setFloat("hfr_nextStepDistance", nextStepDistance.getFloat(player));
+
+		} catch(Exception x) {
 		}
 	}
 
@@ -417,4 +433,63 @@ public class ArmorFSB extends ItemArmor implements IArmorDisableModel {
 
 	public void handleAttack(LivingAttackEvent event) { }
 	public void handleHurt(LivingHurtEvent event) { }
+	
+	public static void setupRenderInv() {
+		GL11.glTranslated(0, -1.5, 0);
+		GL11.glScaled(3.25, 3.25, 3.25);
+		GL11.glRotated(180, 1, 0, 0);
+		GL11.glRotated(-135, 0, 1, 0);
+		GL11.glRotated(-20, 1, 0, 0);
+	}
+	
+	public static void setupRenderNonInv() {
+		GL11.glRotated(180, 1, 0, 0);
+		GL11.glScaled(0.75, 0.75, 0.75);
+		GL11.glRotated(-90, 0, 1, 0);
+	}
+	
+	// if it's the same vomit every time, why not make a method that does it for us?
+	public static void renderStandard(IModelCustom model, int armorType,
+			ResourceLocation helmetTex, ResourceLocation chestTex, ResourceLocation armTex, ResourceLocation legTex,
+			String helmet, String chest, String leftArm, String rightArm, String leftLeg, String rightLeg, String leftBoot, String rightBoot) {
+		
+		GL11.glShadeModel(GL11.GL_SMOOTH);
+		if(armorType == 0) {
+			GL11.glScaled(0.3125, 0.3125, 0.3125);
+			GL11.glTranslated(0, 1, 0);
+			Minecraft.getMinecraft().getTextureManager().bindTexture(helmetTex);
+			for(String s : helmet.split(",")) model.renderPart(s);
+		}
+		if(armorType == 1) {
+			GL11.glScaled(0.225, 0.225, 0.225);
+			GL11.glTranslated(0, -10, 0);
+			Minecraft.getMinecraft().getTextureManager().bindTexture(chestTex);
+			for(String s : chest.split(",")) model.renderPart(s);
+			GL11.glTranslated(0, 0, 0.1);
+			Minecraft.getMinecraft().getTextureManager().bindTexture(armTex);
+			for(String s : leftArm.split(",")) model.renderPart(s);
+			for(String s : rightArm.split(",")) model.renderPart(s);
+		}
+		if(armorType == 2) {
+			GL11.glScaled(0.25, 0.25, 0.25);
+			GL11.glTranslated(0, -20, 0);
+			Minecraft.getMinecraft().getTextureManager().bindTexture(legTex);
+			GL11.glDisable(GL11.GL_CULL_FACE);
+			for(String s : leftLeg.split(",")) model.renderPart(s);
+			GL11.glTranslated(0, 0, 0.1);
+			for(String s : rightLeg.split(",")) model.renderPart(s);
+			GL11.glEnable(GL11.GL_CULL_FACE);
+		}
+		if(armorType == 3) {
+			GL11.glScaled(0.25, 0.25, 0.25);
+			GL11.glTranslated(0, -22, 0);
+			Minecraft.getMinecraft().getTextureManager().bindTexture(legTex);
+			GL11.glDisable(GL11.GL_CULL_FACE);
+			for(String s : leftBoot.split(",")) model.renderPart(s);
+			GL11.glTranslated(0, 0, 0.1);
+			for(String s : rightBoot.split(",")) model.renderPart(s);
+			GL11.glEnable(GL11.GL_CULL_FACE);
+		}
+		GL11.glShadeModel(GL11.GL_FLAT);
+	}
 }

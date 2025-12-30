@@ -18,8 +18,8 @@ import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.IUpgradeInfoProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.CompatEnergyControl;
-import com.hbm.util.I18nUtil;
 import com.hbm.util.fauxpointtwelve.DirPos;
+import com.hbm.util.i18n.I18nUtil;
 
 import api.hbm.energymk2.IEnergyReceiverMK2;
 import api.hbm.fluid.IFluidStandardSender;
@@ -40,7 +40,7 @@ public class TileEntityMachineLiquefactor extends TileEntityMachineBase implemen
 
 	public long power;
 	public static final long maxPower = 100000;
-	public static final int usageBase = 500;
+	public static final int usageBase = 250;
 	public int usage;
 	public int progress;
 	public static final int processTimeBase = 100;

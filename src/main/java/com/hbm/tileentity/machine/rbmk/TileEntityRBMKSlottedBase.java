@@ -2,6 +2,7 @@ package com.hbm.tileentity.machine.rbmk;
 
 import com.hbm.tileentity.IGUIProvider;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -11,7 +12,7 @@ import net.minecraft.nbt.NBTTagList;
  * Base class for RBMK components that have GUI slots and thus have to handle
  * those things Yes it's a copy pasted MachineBase class, thank the lack of
  * multiple inheritance for that
- * 
+ *
  * @author hbm
  *
  */
@@ -66,6 +67,7 @@ public abstract class TileEntityRBMKSlottedBase extends TileEntityRBMKActiveBase
 
 	public void setCustomName(String name) {
 		this.customName = name;
+		markDirty();
 	}
 
 	@Override
@@ -84,6 +86,15 @@ public abstract class TileEntityRBMKSlottedBase extends TileEntityRBMKActiveBase
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack itemStack) {
 		return false;
+	}
+
+	@Override
+	public boolean isUseableByPlayer(EntityPlayer player) {
+		if(worldObj.getTileEntity(xCoord, yCoord, zCoord) != this) {
+			return false;
+		} else {
+			return player.getDistanceSq(xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D) <= 128;
+		}
 	}
 
 	@Override
@@ -123,10 +134,10 @@ public abstract class TileEntityRBMKSlottedBase extends TileEntityRBMKActiveBase
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		
+
 		if(!diag) {
 			NBTTagList list = nbt.getTagList("items", 10);
-	
+
 			for(int i = 0; i < list.tagCount(); i++) {
 				NBTTagCompound nbt1 = list.getCompoundTagAt(i);
 				byte b0 = nbt1.getByte("slot");
@@ -134,16 +145,18 @@ public abstract class TileEntityRBMKSlottedBase extends TileEntityRBMKActiveBase
 					slots[b0] = ItemStack.loadItemStackFromNBT(nbt1);
 				}
 			}
+
+			customName = nbt.getString("name");
 		}
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
-		
+
 		if(!diag) {
 			NBTTagList list = new NBTTagList();
-	
+
 			for(int i = 0; i < slots.length; i++) {
 				if(slots[i] != null) {
 					NBTTagCompound nbt1 = new NBTTagCompound();
@@ -153,6 +166,10 @@ public abstract class TileEntityRBMKSlottedBase extends TileEntityRBMKActiveBase
 				}
 			}
 			nbt.setTag("items", list);
+
+			if (customName != null) {
+				nbt.setString("name", customName);
+			}
 		}
 	}
 }

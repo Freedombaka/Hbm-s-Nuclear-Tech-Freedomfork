@@ -41,7 +41,6 @@ public class ItemPoolsComponent {
 					weighted(ModItems.bolt, Mats.MAT_TUNGSTEN.id, 4, 16, 3),
 					weighted(ModItems.coil_tungsten, 0, 1, 2, 5),
 					weighted(ModItems.motor, 0, 1, 2, 4),
-					weighted(ModItems.tank_steel, 0, 1, 2, 3),
 					weighted(ModItems.coil_copper, 0, 1, 3, 4),
 					weighted(ModItems.coil_copper_torus, 0, 1, 2, 3),
 					weighted(ModItems.wire_fine, Mats.MAT_MINGRADE.id, 1, 8, 5),
@@ -50,7 +49,8 @@ public class ItemPoolsComponent {
 					weighted(ModItems.circuit, EnumCircuitType.VACUUM_TUBE.ordinal(), 1, 2, 4),
 					weighted(ModItems.circuit, EnumCircuitType.PCB.ordinal(), 1, 3, 5),
 					weighted(ModItems.circuit, EnumCircuitType.CAPACITOR.ordinal(), 1, 1, 3),
-					weighted(ModItems.blade_titanium, 0, 1, 8, 1)
+					weighted(ModItems.blade_titanium, 0, 1, 8, 1),
+					weighted(ModItems.blueprint_folder, 0, 1, 1, 1)
 			};
 		}};
 
@@ -108,7 +108,8 @@ public class ItemPoolsComponent {
 					weighted(ModItems.can_mrsugar, 0, 1, 2, 2),
 					weighted(ModItems.cap_nuka, 0, 1, 16, 2),
 					weighted(ModItems.book_guide, 3, 1, 1, 1),
-					weighted(ModBlocks.deco_computer, 0, 1, 1, 1)
+					weighted(ModBlocks.deco_computer, 0, 1, 1, 1),
+					weighted(ModItems.blueprint_folder, 0, 1, 1, 1)
 			};
 		}};
 
@@ -123,7 +124,8 @@ public class ItemPoolsComponent {
 					weighted(ModItems.toothpicks, 0, 1, 16, 10),
 					weighted(ModItems.dust, 0, 1, 1, 40),
 					weighted(ModItems.dust_tiny, 0, 1, 3, 75),
-					weighted(ModItems.ink, 0, 1, 1, 1)
+					weighted(ModItems.ink, 0, 1, 1, 1),
+					weighted(ModItems.blueprint_folder, 0, 1, 1, 5)
 			};
 		}};
 
@@ -156,7 +158,8 @@ public class ItemPoolsComponent {
 					weighted(ModItems.powder_bromine, 0, 1, 1, 1),
 					weighted(ModItems.powder_cobalt, 0, 1, 1, 1),
 					weighted(ModItems.powder_neodymium, 0, 1, 1, 1),
-					weighted(ModItems.powder_boron, 0, 1, 1, 1)
+					weighted(ModItems.powder_boron, 0, 1, 1, 1),
+					weighted(ModItems.blueprint_folder, 1, 1, 1, 1)
 			};
 		}};
 
@@ -184,7 +187,10 @@ public class ItemPoolsComponent {
 					weighted(Items.paper, 0, 1, 6, 7),
 					weighted(Items.clock, 0, 1, 1, 3),
 					weighted(Items.book, 0, 1, 5, 10),
-					weighted(Items.experience_bottle, 0, 1, 3, 1)
+					weighted(Items.experience_bottle, 0, 1, 3, 1),
+					weighted(ModItems.blueprint_folder, 0, 1, 1, 1),
+					weighted(ModItems.blueprint_folder, 1, 1, 1, 1),
+					weighted(ModItems.ammo_container, 0, 1, 1, 1)
 			};
 		}};
 
@@ -207,8 +213,7 @@ public class ItemPoolsComponent {
 			this.pool = new WeightedRandomChestContent[] {
 				weighted(ModItems.oil_detector, 0, 1, 1, 1),
 				weighted(ModItems.canister_full, Fluids.OIL.getID(), 1, 4, 5),
-				weighted(ModBlocks.machine_fraction_tower,0, 0, 1, 1),
-				weighted(ModBlocks.fraction_spacer,0, 0, 1, 1),
+				weighted(ModItems.canister_empty, 0, 4, 16, 10),
 				weighted(ModItems.circuit,EnumCircuitType.ANALOG.ordinal(), 1, 4, 1),
 				weighted(ModItems.circuit, EnumCircuitType.CAPACITOR.ordinal(), 1, 1, 3),
 			};
@@ -220,7 +225,7 @@ public class ItemPoolsComponent {
 				weighted(ModItems.pellet_rtg_weak,0, 0, 1, 1),
 			};
 		}};
-        
+		
 		new ItemPool(POOL_REPAIR_MATERIALS) {{
 			this.pool = new WeightedRandomChestContent[] {
 				weighted(ModItems.ingot_aluminium, 0, 2, 8, 3),

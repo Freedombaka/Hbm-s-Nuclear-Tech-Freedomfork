@@ -7,7 +7,7 @@ import com.hbm.entity.effect.EntityVortex;
 import com.hbm.items.ItemEnumMulti;
 import com.hbm.items.ModItems;
 import com.hbm.util.EnumUtil;
-import com.hbm.util.I18nUtil;
+import com.hbm.util.i18n.I18nUtil;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
@@ -42,15 +43,17 @@ public class ItemConserve extends ItemEnumMulti {
 		EnumFoodType num = EnumUtil.grabEnumSafely(theEnum, stack.getItemDamage());
 		
 		if(num == EnumFoodType.BHOLE && !world.isRemote) {
-			EntityVortex vortex = new EntityVortex(world, 0.5F);
-    		vortex.posX = player.posX;
-    		vortex.posY = player.posY;
-    		vortex.posZ = player.posZ;
-    		world.spawnEntityInWorld(vortex);
-    		
+			EntityVortex vortex = (EntityVortex) new EntityVortex(world, 0.5F).setShrinkRate(0.01F).noBreak();
+			vortex.posX = player.posX;
+			vortex.posY = player.posY;
+			vortex.posZ = player.posZ;
+			world.spawnEntityInWorld(vortex);
+
 		} else if(num == EnumFoodType.RECURSION && world.rand.nextInt(10) > 0) {
-			
 			player.inventory.addItemStackToInventory(stackFromEnum(EnumFoodType.RECURSION));
+			
+		} else if(num == EnumFoodType.FIST) {
+			player.attackEntityFrom(DamageSource.magic, 2F);
 		}
 	}
 	

@@ -17,6 +17,7 @@ import com.hbm.inventory.recipes.CrystallizerRecipes.CrystallizerRecipe;
 import com.hbm.inventory.recipes.ElectrolyserFluidRecipes.ElectrolysisRecipe;
 import com.hbm.inventory.recipes.ElectrolyserMetalRecipes.ElectrolysisMetalRecipe;
 import com.hbm.inventory.recipes.ExposureChamberRecipes.ExposureChamberRecipe;
+import com.hbm.inventory.recipes.OutgasserRecipes.OutgasserRecipe;
 import com.hbm.inventory.recipes.ParticleAcceleratorRecipes.ParticleAcceleratorRecipe;
 import com.hbm.inventory.recipes.PedestalRecipes.PedestalExtraCondition;
 import com.hbm.inventory.recipes.PedestalRecipes.PedestalRecipe;
@@ -29,6 +30,8 @@ import com.hbm.inventory.recipes.anvil.AnvilRecipes;
 import com.hbm.inventory.recipes.anvil.AnvilRecipes.AnvilConstructionRecipe;
 import com.hbm.inventory.recipes.anvil.AnvilRecipes.AnvilOutput;
 import com.hbm.inventory.recipes.anvil.AnvilRecipes.OverlayType;
+import com.hbm.inventory.recipes.loader.GenericRecipe;
+import com.hbm.inventory.recipes.loader.GenericRecipes.IOutput;
 import com.hbm.items.machine.ItemStamp.StampType;
 import com.hbm.util.Tuple.Pair;
 import com.hbm.util.Tuple.Triplet;
@@ -70,14 +73,25 @@ public class CompatRecipeRegistry {
 		SolderingRecipes.recipes.add(new SolderingRecipe(output, time, power, fluid, copyFirst(toppings, 3), copyFirst(pcb, 2), copyFirst(solder, 1)));
 	}
 
-	/** Chemplant recipes need unique IDs, game will crash when an ID collision is detected! */
-	public static void registerChemplant(int id, String name, int duration, AStack[] inputItems, FluidStack[] inputFluids, ItemStack[] outputItems, FluidStack[] outputFluids) {
+	@Deprecated public static void registerChemplant(int id, String name, int duration, AStack[] inputItems, FluidStack[] inputFluids, ItemStack[] outputItems, FluidStack[] outputFluids) {
 		ChemRecipe recipe = new ChemRecipe(id, name, duration);
 		if(inputItems != null) recipe.inputItems(copyFirst(inputItems, 4));
 		if(inputFluids != null) recipe.inputFluids(copyFirst(inputFluids, 2));
 		if(outputItems != null) recipe.outputItems(copyFirst(outputItems, 4));
 		if(outputFluids != null) recipe.outputFluids(copyFirst(outputFluids, 2));
 		ChemplantRecipes.recipes.add(recipe);
+	}
+	
+	/** Chemical plant recipe needs a unique name for the registry. Zero length arrays should stay null*/
+	public static void registerChemicalPlant(String name, boolean named, ItemStack icon, int duration, long power, AStack[] inputItems, FluidStack[] inputFluids, IOutput[] outputItems, FluidStack[] outputFluids) {
+		GenericRecipe recipe = new GenericRecipe(name).setDuration(duration).setPower(power);
+		if(named) recipe.setNamed();
+		if(icon != null) recipe.setIcon(icon);
+		if(inputItems != null && inputItems.length > 0) recipe.inputItems(inputItems);
+		if(inputFluids != null && inputFluids.length > 0) recipe.inputFluids(inputFluids);
+		if(outputItems != null && outputItems.length > 0) recipe.outputItems(outputItems);
+		if(outputFluids != null && outputFluids.length > 0) recipe.outputFluids(outputFluids);
+		ChemicalPlantRecipes.INSTANCE.register(recipe);
 	}
 
 	/** Either solid or liquid output can be null */
@@ -99,7 +113,7 @@ public class CompatRecipeRegistry {
 
 	public static void registerCrystallizer(AStack input, ItemStack output, int time, float productivity, FluidStack fluid) {
 		CrystallizerRecipe recipe = new CrystallizerRecipe(output, time).prod(productivity);
-		CrystallizerRecipes.registerRecipe(input instanceof OreDictStack ? ((OreDictStack) input).name : input, recipe, fluid);
+		CrystallizerRecipes.registerRecipe(input, recipe, fluid);
 	}
 
 	/** Fractions always use 100mB of input fluid per operation. None of the outputs can be null. */
@@ -170,8 +184,14 @@ public class CompatRecipeRegistry {
 
 	//TBI mixer
 
-	public static void registerOutgasser(AStack input, ItemStack output, FluidStack fluid) {
-		OutgasserRecipes.recipes.put(input, new Pair(output, fluid));
+	@Deprecated public static void registerOutgasser(AStack input, ItemStack output, FluidStack fluid) {
+		OutgasserRecipes.recipes.put(input, new OutgasserRecipe(output, fluid));
+	}
+	
+	public static void registerOutgasser(AStack input, ItemStack output, FluidStack fluid, boolean fusionOnly) {
+		OutgasserRecipe recipe = new OutgasserRecipe(output, fluid);
+		if(fusionOnly) recipe.fusionOnly();
+		OutgasserRecipes.recipes.put(input, recipe);
 	}
 
 	public static void registerCompressor(FluidStack input, FluidStack output, int time) {
@@ -207,6 +227,14 @@ public class CompatRecipeRegistry {
 	public static void registerExposureChamber(AStack particle, AStack input, ItemStack output) {
 		ExposureChamberRecipes.recipes.add(new ExposureChamberRecipe(particle, input, output));
 	}
+	
+	public static void registerFusionReactor(String name, int time, long power, long klystron, long plasma, double neutrons, FluidStack[] inputs, ItemStack outputItem, FluidStack outputFluid) {
+		FusionRecipe recipe = (FusionRecipe) new FusionRecipe(name).setInputEnergy(klystron).setOutputEnergy(klystron).setup(time, power);
+		if(inputs != null) recipe.inputFluids(copyFirst(inputs, 3));
+		if(outputItem != null) recipe.outputItems(outputItem);
+		if(outputFluid != null) recipe.outputFluids(outputFluid);
+		FusionRecipes.INSTANCE.register(recipe);
+	}
 
 	/** Input needs two AStacks, output can take 1-2 ItemStacks. If the same recipe with different
 	 * momentum should yield different results, register the lower momentum recipes first. */
@@ -223,6 +251,7 @@ public class CompatRecipeRegistry {
 		AmmoPressRecipes.recipes.add(new AmmoPressRecipe(output, input));
 	}
 
+	/** Assembler recipes are identified by the output as a ComparableStack, so no two recipes can share output. */
 	public static void registerAssembler(ItemStack output, AStack[] input, int time) {
 		AssemblerRecipes.makeRecipe(new ComparableStack(output), copyFirst(input, 12), time);
 	}
