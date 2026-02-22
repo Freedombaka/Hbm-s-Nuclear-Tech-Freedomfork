@@ -664,6 +664,7 @@ public class MainRegistry {
 		event.registerServerCommand(new CommandReloadServer());
 		event.registerServerCommand(new CommandLocate());
 		event.registerServerCommand(new CommandCustomize());
+		event.registerServerCommand(new CommandReapNetworks());
 		ArcFurnaceRecipes.registerFurnaceSmeltables(); // because we have to wait for other mods to take their merry ass time to register recipes
 	}
 
@@ -1468,6 +1469,22 @@ public class MainRegistry {
 		ignoreMappings.add("hbm:tile.fusion_conductor");
 		ignoreMappings.add("hbm:tile.fusion_center");
 		ignoreMappings.add("hbm:tile.fusion_motor");
+		ignoreMappings.add("hbm:tile.machine_spp_bottom");
+		ignoreMappings.add("hbm:tile.machine_spp_top");
+		ignoreMappings.add("hbm:tile.sat_mapper");
+		ignoreMappings.add("hbm:tile.sat_radar");
+		ignoreMappings.add("hbm:tile.sat_scanner");
+		ignoreMappings.add("hbm:tile.sat_laser");
+		ignoreMappings.add("hbm:tile.sat_foeq");
+		ignoreMappings.add("hbm:tile.sat_resonator");
+		ignoreMappings.add("hbm:item.sliding_blast_door_skin");
+		ignoreMappings.add("hbm:tile.dummy_block_vault");
+		ignoreMappings.add("hbm:item.toothpicks");
+		ignoreMappings.add("hbm:item.ams_focus_blank");
+		ignoreMappings.add("hbm:item.ams_focus_limiter");
+		ignoreMappings.add("hbm:item.ams_focus_booster");
+		ignoreMappings.add("hbm:item.ams_muzzle");
+		ignoreMappings.add("hbm:tile.machine_transformer_dnt");
 
 		/// REMAP ///
 		remapItems.put("hbm:item.gadget_explosive8", ModItems.early_explosive_lenses);
