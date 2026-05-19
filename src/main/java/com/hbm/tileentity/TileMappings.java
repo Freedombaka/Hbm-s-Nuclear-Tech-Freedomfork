@@ -42,8 +42,9 @@ import com.hbm.blocks.network.FluidDuctGauge.TileEntityPipeGauge;
 import com.hbm.blocks.network.FluidDuctPaintable.TileEntityPipePaintable;
 import com.hbm.blocks.network.FluidDuctPaintableBlockExhaust.TileEntityPipeExhaustPaintable;
 import com.hbm.blocks.network.FluidPump.TileEntityFluidPump;
-import com.hbm.blocks.network.PneumoTubePaintableBlock.TileEntityPneumoTubePaintable;
+import com.hbm.blocks.network.pneumatic.PneumoTubePaintableBlock.TileEntityPneumoTubePaintable;
 import com.hbm.blocks.rail.RailStandardSwitch.TileEntityRailSwitch;
+import com.hbm.blocks.test.TestEventTester.TileEntityTestStorage;
 import com.hbm.blocks.network.BlockOpenComputersCablePaintable.TileEntityOpenComputersCablePaintable;
 import com.hbm.tileentity.bomb.*;
 import com.hbm.tileentity.deco.*;
@@ -55,6 +56,9 @@ import com.hbm.tileentity.machine.pile.*;
 import com.hbm.tileentity.machine.rbmk.*;
 import com.hbm.tileentity.machine.storage.*;
 import com.hbm.tileentity.network.*;
+import com.hbm.tileentity.network.pneumatic.TileEntityPneumoStorageAccess;
+import com.hbm.tileentity.network.pneumatic.TileEntityPneumoStorageClutter;
+import com.hbm.tileentity.network.pneumatic.TileEntityPneumoTube;
 import com.hbm.tileentity.turret.*;
 import com.hbm.util.Compat;
 
@@ -68,6 +72,7 @@ public class TileMappings {
 
 	public static void writeMappings() {
 		put(TileEntityDiFurnace.class, "tilentity_diFurnace");
+		put(TileEntityTestStorage.class, "tilentity_test_storage");
 		put(TileEntityObjTester.class, "tilentity_objtester");
 		put(TileEntityMachineCentrifuge.class, "tileentity_centrifuge");
 		put(TileEntityNukeMan.class, "tileentity_nukeman");
@@ -115,7 +120,6 @@ public class TileMappings {
 		put(TileEntityMachineTurbofan.class, "tileentity_machine_turbofan");
 		put(TileEntityMachineTurbineGas.class, "tileentity_machine_gasturbine");
 		put(TileEntityMachineLPW2.class, "tileentity_machine_lpw2");
-		put(TileEntityCrateTemplate.class, "tileentity_crate_template");
 		put(TileEntityCrateIron.class, "tileentity_crate_iron");
 		put(TileEntityCrateSteel.class, "tileentity_crate_steel");
 		put(TileEntityCrateDesh.class, "tileentity_crate_desh");
@@ -174,19 +178,14 @@ public class TileMappings {
 		put(TileEntityNukeBalefire.class, "tileentity_nuke_fstbmb");
 		put(TileEntityMicrowave.class, "tileentity_microwave");
 		put(TileEntityMachineMiniRTG.class, "tileentity_mini_rtg");
-		put(TileEntityITER.class, "tileentity_iter");
 		put(TileEntityBlockICF.class, "tileentity_block_icf");
 		put(TileEntityICFPress.class, "tileentity_icf_press");
 		put(TileEntityICFController.class, "tileentity_icf_controller");
 		put(TileEntityICF.class, "tileentity_icf");
-		put(TileEntityMachinePlasmaHeater.class, "tileentity_plasma_heater");
 		put(TileEntityMachineFENSU.class, "tileentity_fensu");
 		put(TileEntityTrappedBrick.class, "tileentity_trapped_brick");
 		put(TileEntityWatzStruct.class, "tileentity_watz_struct");
 		put(TileEntityICFStruct.class, "tileentity_icf_struct");
-		put(TileEntityHadronDiode.class, "tileentity_hadron_diode");
-		put(TileEntityHadronPower.class, "tileentity_hadron_power");
-		put(TileEntityHadron.class, "tileentity_hadron");
 		put(TileEntityPASource.class, "tileentity_pa_source");
 		put(TileEntityPABeamline.class, "tileentity_pa_beamline");
 		put(TileEntityPARFC.class, "tileentity_pa_rfc");
@@ -207,6 +206,7 @@ public class TileMappings {
 		put(TileEntityLanternBehemoth.class, "tileentity_lantern_behemoth");
 		put(TileEntityStorageDrum.class, "tileentity_waste_storage_drum");
 		put(TileEntityMachineBAT9000.class, "tileentity_bat9000");
+		put(TileEntityMachineBigAssTank.class, "tileentity_bigasstank");
 		put(TileEntityMachineOrbus.class, "tileentity_orbus");
 		put(TileEntityGlpyhidSpawner.class, "tileentity_glyphid_spawner");
 		put(TileEntityCustomMachine.class, "tileentity_custom_machine");
@@ -221,8 +221,9 @@ public class TileMappings {
 		put(TileEntityPlushie.class, "tileentity_ntm_plushie");
 		put(TileEntityEmitter.class, "tileentity_ntm_emitter");
 
+		put(TileEntityCargoElevator.class, "tileentity_cargo_elevator");
 		put(TileEntityDoorGeneric.class, "tileentity_ntm_door");
-
+		
 		put(TileEntityCharger.class, "tileentity_ntm_charger");
 		put(TileEntityRefueler.class, "tileentity_ntm_refueler");
 
@@ -285,7 +286,6 @@ public class TileMappings {
 		put(TileEntityTurretHowardDamaged.class, "tileentity_turret_howard_damaged");
 		put(TileEntityTurretMaxwell.class, "tileentity_turret_maxwell");
 		put(TileEntityTurretFritz.class, "tileentity_turret_fritz");
-		put(TileEntityTurretBrandon.class, "tileentity_turret_brandon");
 		put(TileEntityTurretArty.class, "tileentity_turret_arty");
 		put(TileEntityTurretHIMARS.class, "tileentity_turret_himars");
 		put(TileEntityTurretSentry.class, "tileentity_turret_sentry");
@@ -326,6 +326,7 @@ public class TileMappings {
 		put(TileEntityDiFurnaceRTG.class, "tileentity_rtg_difurnace");
 		put(TileEntityMachineRadiolysis.class, "tileentity_radiolysis");
 		put(TileEntityMachineAutosaw.class, "tileentity_autosaw");
+		put(TileEntityMachineThresher.class, "tileentity_thresher");
 
 		put(TileEntityCondenser.class, "tileentity_condenser");
 		put(TileEntityTowerSmall.class, "tileentity_cooling_tower_small");
@@ -352,14 +353,10 @@ public class TileMappings {
 
 		put(TileEntityMachineCombustionEngine.class, "tileentity_combustion_engine");
 
-		put(TileEntityMachineAssembler.class, "tileentity_assembly_machine");
 		put(TileEntityMachineAssemblyMachine.class, "tileentity_assemblymachine");
-		put(TileEntityMachineAssemfac.class, "tileentity_assemfac");
 		put(TileEntityMachineAssemblyFactory.class, "tileentity_assemblyfactory");
 		put(TileEntityMachinePrecAss.class, "tileentity_precass");
-		put(TileEntityMachineChemplant.class, "tileentity_chemical_plant");
 		put(TileEntityMachineChemicalPlant.class, "tileentity_chemicalplant");
-		put(TileEntityMachineChemfac.class, "tileentity_chemfac");
 		put(TileEntityMachineChemicalFactory.class, "tileentity_chemicalfactory");
 		put(TileEntityMachinePUREX.class, "tileentity_purex");
 
@@ -409,6 +406,14 @@ public class TileMappings {
 		put(TileEntityRBMKStorage.class, "tileentity_rbmk_storage");
 		put(TileEntityCraneConsole.class, "tileentity_rbmk_crane_console");
 		put(TileEntityRBMKConsole.class, "tileentity_rbmk_console");
+		put(TileEntityRBMKDisplay.class, "tileentity_rbmk_display");
+		put(TileEntityRBMKKeyPad.class, "tileentity_rbmk_keypad");
+		put(TileEntityRBMKGauge.class, "tileentity_rbmk_gauge");
+		put(TileEntityRBMKNumitron.class, "tileentity_rbmk_numitron");
+		put(TileEntityRBMKGraph.class, "tileentity_rbmk_graph");
+		put(TileEntityRBMKLever.class, "tileentity_rbmk_lever");
+		put(TileEntityRBMKIndicator.class, "tileentity_rbmk_indicator");
+		put(TileEntityRBMKTerminal.class, "tileentity_rbmk_terminal");
 		put(TileEntityRBMKInlet.class, "tileentity_rbmk_inlet");
 		put(TileEntityRBMKOutlet.class, "tileentity_rbmk_outlet");
 		put(TileEntityRBMKAutoloader.class, "tileentity_rbmk_autoloader");
@@ -424,6 +429,7 @@ public class TileMappings {
 		put(TileEntityFusionBoiler.class, "tileentity_fusion_boiler");
 		put(TileEntityFusionMHDT.class, "tileentity_fusion_mhdt");
 		put(TileEntityFusionCoupler.class, "tileentity_fusion_coupler");
+		put(TileEntityFusionPlasmaForge.class, "tileentity_fusion_plasma_forge");
 	}
 
 	private static void putNetwork() {
@@ -434,6 +440,7 @@ public class TileMappings {
 		put(TileEntityDiode.class, "tileentity_cable_diode");
 
 		put(TileEntityConnector.class, "tileentity_connector_redwire");
+		put(TileEntityConnectorSuper.class, "tileentity_connector_redwire_super");
 		put(TileEntityPylon.class, "tileentity_pylon_redwire");
 		put(TileEntityPylonMedium.class, "tileentity_pylon_medium");
 		put(TileEntityPylonLarge.class, "tileentity_pylon_large");
@@ -463,6 +470,8 @@ public class TileMappings {
 
 		put(TileEntityPneumoTube.class, "tileentity_pneumatic_tube");
 		put(TileEntityPneumoTubePaintable.class, "tileentity_pneumatic_tube_paintable");
+		put(TileEntityPneumoStorageAccess.class, "tileentity_pneumatic_storage_access");
+		put(TileEntityPneumoStorageClutter.class, "tileentity_pneumatic_storage_clutter");
 
 		put(TileEntityRadioTorchSender.class, "tileentity_rtty_sender");
 		put(TileEntityRadioTorchReceiver.class, "tileentity_rtty_rec");

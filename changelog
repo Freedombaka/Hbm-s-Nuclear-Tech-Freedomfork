@@ -1,33 +1,51 @@
 ## Added
-* Target pistol
-  * Weapon steel tier pistol that holds 15 rounds and shoots .22 LR
-  * Accepts silencers
+* Redstone-over-Radio Terminal
+  * Allows commands to be sent manually, command line style
+  * Supports single commands and repeated ones (polling)
+* Grenade machinegun
+  * 30rnd automatic 40mm grenade weapon firing at 120 RPS
+  * Can be upgraded with an auxiliary electric engine to double the firerate
+* Automatic thresher
+  * A specialized machine for automatically harvesting crops in a 7x7 area
+  * Replaces the buzzsaw's temporary functionality to do just that (the buzzsaw now loses that ability)
+  * Drops harvested items using a chute instead of leaving them on the farmland
+  * When cutting down hemp, willows, and other NTM double plants, only the top part will be cut off, no matter where the thresher touches it
+  * Can also harvest items from sunflowers and tall grass without breaking the blocks
+  * Can also handle tall plants like cacti and sugar cane
 
 ## Changed
-* Reworked the industrial turbine
-  * New model and texture
-  * Removed the GUI, it now uses the same in-world compressor toggle as the leviathan turbine
-  * No longer has a volatile power buffer, power isn't buffered at all anymore, similar to steam engines and MHD turbines
-  * Steam capacity changes based on compression level, the ratio for turbine cascades is now 1:1:1:1
-  * Comes with a flywheel, energy output slowly ramps up as steam is supplied and slowly goes down as steam cuts out
-  * Recipe is similar to the old inudstrial turbine, but slightly simplified and cheaper
-* Leviathan turbines no longer have a power buffer
-* Updated russian and chinese localization
-* The PWR can now be controlled via RoR
-  * The RoR value reader can read core and hull heat as well as fuel depletion in percent
-  * The RoR controller can set the control rod level in percent as well as jetison all loaded fuel
-* Having 528, expensive or rampant mode enabled now displays a badge in the top left corner, showing that it is enabled
-  * Badges can be disabled with the `BADGES_HUD` value of `/ntmclient`
-  * The badge only shows up if the "true" configuration is used, 528 requires default settings, expensive requires the precision assembler config to not be modified and rampant needs most of the default settings enabled
-  * If all three modes are enabled, the "328 mode" badge also appears
-* Removed toothpicks, as they haven't been used in recipes for well over a year
-* Cleaned up a ton of unused assets
-* The old crucible smelting rules when not using a template can be restores with the `/ntmserver` value `LEGACY_CRUCIBLE_RULES`
-* Due to repeated complaints, power armor sounds are now generally more quiet, with 25% volume for steps and 50% volume for jumping and landing
+* RoR graphs can now have their min and max bounds set to a fixed number
+  * This should make it easier to accurately tell the difference/scale of values when they exist in an expected range (for example, RBMK temperatures)
+* RoR controllers now use polling by default, since state change is unable to actually perform a function unless the state changes, preventing repeated commands
+* HE/RF converters now have a tooltip showing their buffered energy
+* Updated the models of the cage lamp, fluorescent light and halogen lamp
+* 528 mode now has a new config for enabling gravity on machines
+  * Machines not on solid ground will tilt, causing them to break
+  * Still a work in progress, not all machines make use of it yet
+  * The ZIRNOX for example will continue to operate when tilted, however the pipes will disconnect, resulting in a fatal loss of cooling
+* Slightly adjusted the automatic buzzsaw's texture
+* Mobs can no longer spawn on most versions of concrete
+  * Notable exceptions are mossy and cracked concrete bricks
+* Increased the yield of lye from wood ash
+* All fluid tanks larger than barrels now have dynamic IO speed instead of providing their entire contents instantly
+  * Tank fill will slow down the fuller the tank becomes, tank drain also slow downs as it gets emptier
+  * This means that multiple tanks in IO mode in the same network will still ping pong, but instead of firing their entire contents over the network, they will even out
+* The stinger is now classified as a special weapon
+* The carbine can now take a scope
+* The battery socket now renders supports when a block is placed on top of it, allowing somewhat aesthetic stacking of sockets
+* The bayonet weapon attachment now uses regular steel plates instead of weapon steel, making them available as early as the blast furnace
+* Adjusted some 528 mode recipes
+* Removed the template crates entirely for being literally useless
+* Oil bubbles can no longer go down to Y:0, they now have a minimum center height of Y:15
+* The automatic buzzsaw and thresher now have sound loops when active
+* The shredder auto shotgun now uses the plasma damage type instead of laser
+* Added "nitra to ammunition" recipe in the assembly machine, turning large piles of nitra into random casings/propellants
 
-# Fixed
-* Fixed proxy tiles that do not use electricity at all visually connecting to cables
-* Fixed missing texture for canned horse slime
-* Fixed incorrect ore dictionary key used by enriched naquadah watz pellet recipe
-* Fixed out of bounds light level for the RTG blast furnace
-* Fixed the recipe configs now allowing NBT data for output items, rendering the precision assembler and annihilator configs useless
+## Fixed
+* Fixed RoR graph showing the wrong name in the GUI
+* Fixed polling option in RoR controllers reading dead signals
+* Fixed state change in RoR controllers not allowing repeat commands
+* Fixed blast furnace NEI handler not cycling through all valid material shapes
+* Fixed RoR transmitter sending empty signals when unused mappings apply
+* Fixed hopper IO for battery sockets being entirely broken
+* Fixed cargo elevators not dropping the correct amount of segments
